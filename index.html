@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#1B5E20"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="GOGO Taxi"/>
+<title>GO GO UG – Fahrtenbuch</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+
+<style>
+:root {
+  --green-deep:   #0D2B0F;
+  --green-dark:   #1B5E20;
+  --green-mid:    #2E7D32;
+  --green-light:  #4CAF50;
+  --green-glow:   #69F070;
+  --gold:         #FFD600;
+  --gold-dark:    #F9A825;
+  --amber:        #FF8F00;
+  --blue:         #1565C0;
+  --teal:         #00838F;
+  --red:          #C62828;
+  --purple:       #6A1B9A;
+  --bg:           #0a1a0c;
+  --surface:      #0f2412;
+  --surface2:     #162d19;
+  --surface3:     #1c3620;
+  --border:       #2a4a2d;
+  --text:         #e8f5e9;
+  --text-dim:     #81c784;
+  --text-muted:   #4a7a4d;
+  --radius:       14px;
+  --radius-sm:    8px;
+  --shadow:       0 4px 24px rgba(0,0,0,0.5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ── APP SHELL ── */
+#app { display: flex; flex-direction: column; min-height: 100dvh; }
+
+/* ── HEADER ── */
+.header {
+  background: linear-gradient(135deg, var(--green-deep) 0%, #0f2e13 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px 10px;
+  display: flex; align-items: center; gap: 10px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.6);
+}
+.header-logo {
+  width: 40px; height: 40px;
+  background: var(--green-dark);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+  border: 1px solid var(--green-light);
+  box-shadow: 0 0 12px rgba(76,175,80,0.3);
+}
+.header-title { flex: 1; }
+.header-title h1 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px; font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 1px;
+  line-height: 1;
+}
+.header-title p { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.header-date {
+  font-size: 11px; color: var(--text-dim);
+  text-align: right; line-height: 1.4;
+}
+
+/* ── NAV TABS ── */
+.nav-tabs {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tab {
+  flex: 1; min-width: 70px;
+  padding: 10px 8px;
+  font-size: 11px; font-weight: 700;
+  color: var(--text-muted);
+  text-align: center; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  white-space: nowrap;
+  user-select: none;
+}
+.nav-tab .icon { font-size: 18px; }
+.nav-tab.active { color: var(--gold); border-bottom-color: var(--gold); background: rgba(255,214,0,0.05); }
+
+/* ── CONTENT ── */
+.content { flex: 1; padding: 16px; overflow-y: auto; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── SECTION CARD ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px; font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.badge {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 7px; border-radius: 20px;
+  background: var(--green-dark); color: var(--green-glow);
+}
+
+/* ── FORM ── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group.full { grid-column: 1 / -1; }
+label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
+  color: var(--text-dim); text-transform: uppercase;
+}
+input, select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px; font-weight: 600;
+  padding: 10px 12px;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--green-light);
+  box-shadow: 0 0 0 2px rgba(76,175,80,0.2);
+}
+input[type="date"] { color-scheme: dark; }
+input::placeholder { color: var(--text-muted); font-weight: 400; }
+
+/* number inputs get right-align */
+input[type="number"] { text-align: right; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 13px 20px;
+  border: none; border-radius: var(--radius-sm);
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px; font-weight: 800;
+  cursor: pointer; transition: all 0.15s;
+  letter-spacing: 0.3px;
+  width: 100%;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--green-mid), var(--green-light));
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(46,125,50,0.4);
+}
+.btn-primary:hover { box-shadow: 0 6px 20px rgba(76,175,80,0.5); }
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: #000;
+  box-shadow: 0 4px 16px rgba(255,214,0,0.3);
+}
+.btn-ghost {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.btn-danger {
+  background: rgba(198,40,40,0.15);
+  border: 1px solid rgba(198,40,40,0.4);
+  color: #ef9a9a;
+}
+.btn-row { display: flex; gap: 10px; }
+.btn-row .btn { flex: 1; }
+
+/* ── COLOUR CHIPS per field ── */
+.chip-km    { background: rgba(27,94,32,0.25); border-color: #2e7d32; }
+.chip-fare  { background: rgba(0,131,143,0.2); border-color: var(--teal); }
+.chip-cash  { background: rgba(21,101,192,0.2); border-color: var(--blue); }
+.chip-sick  { background: rgba(106,27,154,0.2); border-color: var(--purple); }
+.chip-exp   { background: rgba(198,40,40,0.15); border-color: var(--red); }
+.chip-fuel  { background: rgba(249,168,37,0.15); border-color: var(--gold-dark); }
+
+/* ── SECTION DIVIDER ── */
+.section-divider {
+  display: flex; align-items: center; gap: 10px;
+  margin: 4px 0 10px;
+}
+.section-divider span {
+  font-size: 10px; font-weight: 800; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--text-muted);
+  white-space: nowrap;
+}
+.section-divider hr { flex: 1; border: none; border-top: 1px solid var(--border); }
+
+/* ── LOG LIST ── */
+.log-list { display: flex; flex-direction: column; gap: 8px; }
+.log-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.log-item:active { border-color: var(--green-light); }
+.log-item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.log-date { font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 700; color: var(--gold); }
+.log-total { font-size: 16px; font-weight: 800; color: var(--green-glow); }
+.log-meta { display: flex; gap: 12px; font-size: 11px; color: var(--text-dim); flex-wrap: wrap; }
+.log-meta span { display: flex; align-items: center; gap: 3px; }
+
+.empty-state {
+  text-align: center; padding: 50px 20px;
+  color: var(--text-muted);
+}
+.empty-state .big { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* ── SUMMARY STATS ── */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stat-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  text-align: center;
+}
+.stat-box.highlight { border-color: var(--green-mid); background: rgba(46,125,50,0.12); }
+.stat-value { font-family: 'Rajdhani', sans-serif; font-size: 24px; font-weight: 700; color: var(--gold); line-height: 1; }
+.stat-label { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; color: var(--text-muted); text-transform: uppercase; margin-top: 4px; }
+
+/* ── MONTH SELECTOR ── */
+.month-selector {
+  display: flex; gap: 8px; align-items: center;
+  margin-bottom: 14px;
+}
+.month-selector select { flex: 1; }
+.month-selector button {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); padding: 10px 14px;
+  border-radius: var(--radius-sm); cursor: pointer; font-size: 16px;
+}
+
+/* ── MODAL / DETAIL SHEET ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75); z-index: 200;
+  align-items: flex-end; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+  width: 100%; max-width: 480px;
+  max-height: 88dvh; overflow-y: auto;
+  padding: 20px;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.6);
+}
+.modal-handle {
+  width: 36px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: 0 auto 16px;
+}
+.modal-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px; font-weight: 700; color: var(--gold);
+  margin-bottom: 16px;
+}
+
+/* ── DETAIL ROW ── */
+.detail-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 13px;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-key { color: var(--text-dim); }
+.detail-val { font-weight: 700; color: var(--text); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--green-dark); color: #fff;
+  padding: 10px 20px; border-radius: 24px;
+  font-size: 13px; font-weight: 700;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  opacity: 0; transition: all 0.3s; z-index: 300;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── INSTALL BANNER ── */
+.install-banner {
+  display: none;
+  background: linear-gradient(135deg, #0D2B0F, #1a3d1d);
+  border: 1px solid var(--green-mid);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  gap: 12px; align-items: center;
+}
+.install-banner.visible { display: flex; }
+.install-banner p { flex: 1; font-size: 13px; color: var(--text-dim); line-height: 1.4; }
+.install-banner p strong { color: var(--gold); }
+.install-banner button {
+  background: var(--green-dark); border: 1px solid var(--green-light);
+  color: var(--green-glow); padding: 8px 14px;
+  border-radius: var(--radius-sm); cursor: pointer;
+  font-size: 12px; font-weight: 800; white-space: nowrap;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ── SAFE AREA ── */
+.bottom-safe { height: env(safe-area-inset-bottom, 0); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-logo">🚕</div>
+    <div class="header-title">
+      <h1>GO GO UG</h1>
+      <p>Fahrtenbuch · Taxi 06 Schwabach</p>
+    </div>
+    <div class="header-date" id="headerDate"></div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="nav-tabs">
+    <div class="nav-tab active" onclick="showPage('entry')" data-page="entry">
+      <span class="icon">✏️</span>Eintrag
+    </div>
+    <div class="nav-tab" onclick="showPage('log')" data-page="log">
+      <span class="icon">📋</span>Verlauf
+    </div>
+    <div class="nav-tab" onclick="showPage('summary')" data-page="summary">
+      <span class="icon">📊</span>Übersicht
+    </div>
+    <div class="nav-tab" onclick="showPage('settings')" data-page="settings">
+      <span class="icon">⚙️</span>Einst.
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <!-- ═══ PAGE: ENTRY ═══ -->
+    <div id="page-entry" class="page active">
+
+      <div id="installBanner" class="install-banner">
+        <span style="font-size:28px">📲</span>
+        <p><strong>App installieren!</strong><br>Zum Startbildschirm hinzufügen für Offline-Nutzung</p>
+        <button id="installBtn">Installieren</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📅 Neuer Tageseintrag</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Datum</label>
+            <input type="date" id="f-date"/>
+          </div>
+          <div class="form-group full">
+            <label>Fahrer Name</label>
+            <input type="text" id="f-driver" placeholder="Name eingeben…"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="card chip-km" style="border-radius:var(--radius);border-width:1px;">
+        <div class="section-divider"><hr/><span>🚗 Kilometer</span><hr/></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>KM Total</label>
+            <input type="number" id="f-km-total" placeholder="0" min="0" step="0.1"/>
+          </div>
+          <div class="form-group">
+            <label>KM Besetzt</label>
+            <input type="number" id="f-km-besetzt" placeholder="0" min="0" step="0.1"/>
+          </div>
+          <div class="form-group">
+            <label>Touren</label>
+            <input type="number" id="f-touren" placeholder="0" min="0"/>
+          </div>
+          <div class="form-group">
+            <label>Zuschläge (€)</label>
+            <input type="number" id="f-zuschlage" placeholder="0.00" min="0" step="0.01"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="card chip-fare" style="border-radius:var(--radius);border-width:1px;">
+        <div class="section-divider"><hr/><span>💶 Einnahmen</span><hr/></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Fahrpreis (€)</label>
+            <input type="number" id="f-fahrpreis" placeholder="0.00" min="0" step="0.01"/>
+          </div>
+          <div class="form-group">
+            <label>Pauschal (€)</label>
+            <input type="number" id="f-pauschal" placeholder="0.00" min="0" step="0.01"/>
+          </div>
+          <div class="form-group">
+            <label>Bargeld (€)</label>
+            <input type="number" id="f-bargeld" placeholder="0.00" min="0" step="0.01"/>
+          </div>
+          <div class="form-group">
+            <label>Online/Karte (€)</label>
+            <input type="number" id="f-online" placeholder="0.00" min="0" step="0.01"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="card chip-sick" style="border-radius:var(--radius);border-width:1px;">
+        <div class="section-divider"><hr/><span>🏥 Krankenfahrten</span><hr/></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Krank Fahrt (€)</label>
+            <input type="number" id="f-krank" placeholder="0.00" min="0" step="0.01"/>
+          </div>
+          <div class="form-group">
+            <label>Quittungen (€)</label>
+            <input type="number" id="f-quittungen" placeholder="0.00" min="0" step="0.01"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="card chip-exp" style="border-radius:var(--radius);border-width:1px;">
+        <div class="section-divider"><hr/><span>🧾 Ausgaben</span><hr/></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Ausgaben (€)</label>
+            <input type="number" id="f-ausgaben" placeholder="0.00" min="0" step="0.01"/>
+          </div>
+          <div class="form-group chip-fuel" style="border-radius:var(--radius-sm);padding:6px 8px;">
+            <label>Diesel (€)</label>
+            <input type="number" id="f-diesel" placeholder="0.00" min="0" step="0.01"/>
+          </div>
+          <div class="form-group full">
+            <label>Notizen</label>
+            <input type="text" id="f-notes" placeholder="Optional…"/>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <button class="btn btn-primary" onclick="saveEntry()">
+          <span>💾</span> Eintrag Speichern
+        </button>
+      </div>
+      <div style="margin-bottom:80px">
+        <button class="btn btn-ghost" onclick="clearForm()">
+          <span>🔄</span> Formular leeren
+        </button>
+      </div>
+    </div><!-- /entry -->
+
+    <!-- ═══ PAGE: LOG ═══ -->
+    <div id="page-log" class="page">
+      <div class="month-selector">
+        <button onclick="changeLogMonth(-1)">◀</button>
+        <select id="logMonthSel" onchange="renderLog()"></select>
+        <button onclick="changeLogMonth(1)">▶</button>
+      </div>
+      <div id="logList" class="log-list"></div>
+      <div style="height:80px"></div>
+    </div>
+
+    <!-- ═══ PAGE: SUMMARY ═══ -->
+    <div id="page-summary" class="page">
+      <div class="month-selector">
+        <button onclick="changeSumMonth(-1)">◀</button>
+        <select id="sumMonthSel" onchange="renderSummary()"></select>
+        <button onclick="changeSumMonth(1)">▶</button>
+      </div>
+      <div id="summaryContent"></div>
+      <div style="margin-bottom:16px">
+        <button class="btn btn-gold" onclick="exportCSV()">
+          <span>📤</span> Als CSV exportieren
+        </button>
+      </div>
+      <div style="margin-bottom:80px">
+        <button class="btn btn-ghost" onclick="exportJSON()">
+          <span>💾</span> JSON Backup
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ PAGE: SETTINGS ═══ -->
+    <div id="page-settings" class="page">
+      <div class="card">
+        <div class="card-title">👤 Fahrer Einstellungen</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Standard Fahrer</label>
+            <input type="text" id="s-driver" placeholder="Fahrername…" oninput="saveSetting('driver', this.value)"/>
+          </div>
+          <div class="form-group full">
+            <label>Taxi Nummer</label>
+            <input type="text" id="s-taxi" placeholder="Taxi 06 Schwabach" oninput="saveSetting('taxi', this.value)"/>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📱 App Info</div>
+        <div class="detail-row"><span class="detail-key">Version</span><span class="detail-val">1.0.0</span></div>
+        <div class="detail-row"><span class="detail-key">Firma</span><span class="detail-val">GO GO UG</span></div>
+        <div class="detail-row"><span class="detail-key">Adresse</span><span class="detail-val">Austr 31, 91126 Schwabach</span></div>
+        <div class="detail-row"><span class="detail-key">Einträge gesamt</span><span class="detail-val" id="s-count">0</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🗄️ Daten</div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <button class="btn btn-gold" onclick="exportJSON()"><span>📤</span> Backup exportieren</button>
+          <button class="btn btn-ghost" onclick="importJSON()"><span>📥</span> Backup importieren</button>
+          <button class="btn btn-danger" onclick="clearAllData()"><span>🗑️</span> Alle Daten löschen</button>
+        </div>
+      </div>
+      <div style="height:80px"></div>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)"/>
+    </div>
+
+  </main>
+  <div class="bottom-safe"></div>
+</div><!-- /app -->
+
+<!-- MODAL: Entry detail -->
+<div class="modal-overlay" id="detailModal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">Eintrag Details</div>
+    <div id="modalBody"></div>
+    <div style="height:14px"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="editEntry()"><span>✏️</span> Bearbeiten</button>
+      <button class="btn btn-danger" onclick="deleteEntry()"><span>🗑️</span> Löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA LAYER ───────────────────────────────────────────────────────────────
+const STORE_KEY = 'gogo_entries';
+const SET_KEY   = 'gogo_settings';
+
+function loadEntries() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); }
+  catch { return []; }
+}
+function saveEntries(arr) { localStorage.setItem(STORE_KEY, JSON.stringify(arr)); }
+function loadSettings() {
+  try { return JSON.parse(localStorage.getItem(SET_KEY) || '{}'); }
+  catch { return {}; }
+}
+function saveSetting(k, v) {
+  const s = loadSettings(); s[k] = v; localStorage.setItem(SET_KEY, JSON.stringify(s));
+}
+
+// ── HELPERS ─────────────────────────────────────────────────────────────────
+function fmt(n) { return (parseFloat(n) || 0).toFixed(2).replace('.', ','); }
+function fmtKm(n) { return (parseFloat(n) || 0).toFixed(1); }
+function today() { return new Date().toISOString().slice(0, 10); }
+function showToast(msg, color='#1B5E20') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.background = color;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+const MONTHS_DE = ['Januar','Februar','März','April','Mai','Juni',
+                   'Juli','August','September','Oktober','November','Dezember'];
+
+function monthKey(date) { return date.slice(0,7); } // "2026-04"
+function monthLabel(key) {
+  const [y, m] = key.split('-');
+  return `${MONTHS_DE[parseInt(m)-1]} ${y}`;
+}
+function allMonthKeys() {
+  const entries = loadEntries();
+  const keys = [...new Set(entries.map(e => monthKey(e.date)))].sort().reverse();
+  const cur = today().slice(0,7);
+  if (!keys.includes(cur)) keys.unshift(cur);
+  return keys;
+}
+
+// ── NAVIGATION ───────────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelector(`.nav-tab[data-page="${id}"]`).classList.add('active');
+  if (id === 'log')      renderLog();
+  if (id === 'summary')  renderSummary();
+  if (id === 'settings') renderSettings();
+}
+
+// ── ENTRY FORM ────────────────────────────────────────────────────────────────
+let editingId = null;
+
+function initForm() {
+  document.getElementById('f-date').value = today();
+  const s = loadSettings();
+  if (s.driver) document.getElementById('f-driver').value = s.driver;
+}
+
+function clearForm() {
+  ['f-km-total','f-km-besetzt','f-touren','f-zuschlage',
+   'f-fahrpreis','f-pauschal','f-bargeld','f-online',
+   'f-krank','f-quittungen','f-ausgaben','f-diesel','f-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f-date').value = today();
+  editingId = null;
+}
+
+function saveEntry() {
+  const date = document.getElementById('f-date').value;
+  if (!date) { showToast('❌ Bitte Datum wählen', '#C62828'); return; }
+
+  const entry = {
+    id:          editingId || Date.now().toString(),
+    date,
+    driver:      document.getElementById('f-driver').value.trim(),
+    kmTotal:     parseFloat(document.getElementById('f-km-total').value) || 0,
+    kmBesetzt:   parseFloat(document.getElementById('f-km-besetzt').value) || 0,
+    touren:      parseFloat(document.getElementById('f-touren').value) || 0,
+    zuschlage:   parseFloat(document.getElementById('f-zuschlage').value) || 0,
+    fahrpreis:   parseFloat(document.getElementById('f-fahrpreis').value) || 0,
+    pauschal:    parseFloat(document.getElementById('f-pauschal').value) || 0,
+    bargeld:     parseFloat(document.getElementById('f-bargeld').value) || 0,
+    online:      parseFloat(document.getElementById('f-online').value) || 0,
+    krank:       parseFloat(document.getElementById('f-krank').value) || 0,
+    quittungen:  parseFloat(document.getElementById('f-quittungen').value) || 0,
+    ausgaben:    parseFloat(document.getElementById('f-ausgaben').value) || 0,
+    diesel:      parseFloat(document.getElementById('f-diesel').value) || 0,
+    notes:       document.getElementById('f-notes').value.trim(),
+  };
+
+  let entries = loadEntries();
+  if (editingId) {
+    const idx = entries.findIndex(e => e.id === editingId);
+    if (idx !== -1) entries[idx] = entry;
+  } else {
+    entries.push(entry);
+  }
+  saveEntries(entries);
+  showToast('✅ Eintrag gespeichert!');
+  clearForm();
+  editingId = null;
+}
+
+// ── LOG PAGE ──────────────────────────────────────────────────────────────────
+let logMonthIdx = 0;
+
+function populateMonthSel(selId, idx) {
+  const keys = allMonthKeys();
+  const sel = document.getElementById(selId);
+  sel.innerHTML = keys.map((k, i) =>
+    `<option value="${k}" ${i === idx ? 'selected' : ''}>${monthLabel(k)}</option>`
+  ).join('');
+}
+
+function changeLogMonth(d) {
+  const keys = allMonthKeys();
+  logMonthIdx = Math.max(0, Math.min(keys.length - 1, logMonthIdx + d));
+  populateMonthSel('logMonthSel', logMonthIdx);
+  renderLog();
+}
+
+function renderLog() {
+  const sel = document.getElementById('logMonthSel');
+  if (!sel.value) populateMonthSel('logMonthSel', 0);
+  const month = sel.value || today().slice(0,7);
+  const entries = loadEntries().filter(e => monthKey(e.date) === month)
+    .sort((a,b) => b.date.localeCompare(a.date));
+
+  const el = document.getElementById('logList');
+  if (!entries.length) {
+    el.innerHTML = `<div class="empty-state"><div class="big">📋</div><p>Keine Einträge für ${monthLabel(month)}</p></div>`;
+    return;
+  }
+  el.innerHTML = entries.map(e => {
+    const total = e.fahrpreis + e.pauschal + e.krank;
+    const dateStr = new Date(e.date + 'T12:00:00').toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'2-digit'});
+    return `
+    <div class="log-item" onclick="openDetail('${e.id}')">
+      <div class="log-item-top">
+        <span class="log-date">${dateStr}</span>
+        <span class="log-total">€ ${fmt(total)}</span>
+      </div>
+      <div class="log-meta">
+        <span>🚗 ${fmtKm(e.kmTotal)} km</span>
+        <span>🔢 ${e.touren} Touren</span>
+        <span>💶 Bar: €${fmt(e.bargeld)}</span>
+        <span>💳 Karte: €${fmt(e.online)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── SUMMARY PAGE ──────────────────────────────────────────────────────────────
+let sumMonthIdx = 0;
+
+function changeSumMonth(d) {
+  const keys = allMonthKeys();
+  sumMonthIdx = Math.max(0, Math.min(keys.length - 1, sumMonthIdx + d));
+  populateMonthSel('sumMonthSel', sumMonthIdx);
+  renderSummary();
+}
+
+function renderSummary() {
+  const sel = document.getElementById('sumMonthSel');
+  if (!sel.value) populateMonthSel('sumMonthSel', 0);
+  const month = sel.value || today().slice(0,7);
+  const entries = loadEntries().filter(e => monthKey(e.date) === month);
+
+  const sum = (k) => entries.reduce((a, e) => a + (e[k] || 0), 0);
+  const el = document.getElementById('summaryContent');
+
+  if (!entries.length) {
+    el.innerHTML = `<div class="empty-state"><div class="big">📊</div><p>Keine Daten für ${monthLabel(month)}</p></div>`;
+    return;
+  }
+
+  const totalEin = sum('fahrpreis') + sum('pauschal') + sum('krank');
+  const totalAus = sum('ausgaben') + sum('diesel');
+  const netto    = totalEin - totalAus;
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-title">💰 Monatszusammenfassung</div>
+      <div class="stats-grid">
+        <div class="stat-box highlight">
+          <div class="stat-value">€ ${fmt(totalEin)}</div>
+          <div class="stat-label">Einnahmen</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" style="color:var(--red)">€ ${fmt(totalAus)}</div>
+          <div class="stat-label">Ausgaben</div>
+        </div>
+        <div class="stat-box highlight" style="grid-column:1/-1">
+          <div class="stat-value" style="font-size:28px;color:${netto>=0?'var(--green-glow)':'var(--red)'}">€ ${fmt(netto)}</div>
+          <div class="stat-label">Netto (${netto>=0?'Gewinn':'Verlust'})</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🚗 Kilometer & Fahrten</div>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-value">${fmtKm(sum('kmTotal'))}</div><div class="stat-label">KM Total</div></div>
+        <div class="stat-box"><div class="stat-value">${fmtKm(sum('kmBesetzt'))}</div><div class="stat-label">KM Besetzt</div></div>
+        <div class="stat-box"><div class="stat-value">${sum('touren').toFixed(0)}</div><div class="stat-label">Touren</div></div>
+        <div class="stat-box"><div class="stat-value">${entries.length}</div><div class="stat-label">Arbeitstage</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Einnahmen Details</div>
+      ${[
+        ['Fahrpreis', sum('fahrpreis')],
+        ['Pauschal',  sum('pauschal')],
+        ['Zuschläge', sum('zuschlage')],
+        ['Bargeld',   sum('bargeld')],
+        ['Online/Karte', sum('online')],
+        ['Krankenfahrten', sum('krank')],
+        ['Quittungen', sum('quittungen')],
+      ].map(([k,v]) => `<div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">€ ${fmt(v)}</span></div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-title">🧾 Ausgaben Details</div>
+      ${[
+        ['Ausgaben', sum('ausgaben')],
+        ['Diesel',   sum('diesel')],
+      ].map(([k,v]) => `<div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val" style="color:var(--red)">€ ${fmt(v)}</span></div>`).join('')}
+    </div>
+  `;
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+let currentDetailId = null;
+
+function openDetail(id) {
+  const e = loadEntries().find(x => x.id === id);
+  if (!e) return;
+  currentDetailId = id;
+  const dateStr = new Date(e.date + 'T12:00:00').toLocaleDateString('de-DE', {weekday:'long', day:'2-digit', month:'long', year:'numeric'});
+  document.getElementById('modalTitle').textContent = dateStr;
+  document.getElementById('modalBody').innerHTML = [
+    ['Fahrer', e.driver || '—'],
+    ['KM Total', fmtKm(e.kmTotal) + ' km'],
+    ['KM Besetzt', fmtKm(e.kmBesetzt) + ' km'],
+    ['Touren', e.touren],
+    ['Zuschläge', '€ ' + fmt(e.zuschlage)],
+    ['Fahrpreis', '€ ' + fmt(e.fahrpreis)],
+    ['Pauschal', '€ ' + fmt(e.pauschal)],
+    ['Bargeld', '€ ' + fmt(e.bargeld)],
+    ['Online/Karte', '€ ' + fmt(e.online)],
+    ['Krank Fahrt', '€ ' + fmt(e.krank)],
+    ['Quittungen', '€ ' + fmt(e.quittungen)],
+    ['Ausgaben', '€ ' + fmt(e.ausgaben)],
+    ['Diesel', '€ ' + fmt(e.diesel)],
+    e.notes ? ['Notizen', e.notes] : null,
+  ].filter(Boolean).map(([k,v]) =>
+    `<div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`
+  ).join('');
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('detailModal'))
+    document.getElementById('detailModal').classList.remove('open');
+}
+
+function editEntry() {
+  const e = loadEntries().find(x => x.id === currentDetailId);
+  if (!e) return;
+  document.getElementById('detailModal').classList.remove('open');
+  showPage('entry');
+  editingId = e.id;
+  document.getElementById('f-date').value = e.date;
+  document.getElementById('f-driver').value = e.driver || '';
+  document.getElementById('f-km-total').value = e.kmTotal || '';
+  document.getElementById('f-km-besetzt').value = e.kmBesetzt || '';
+  document.getElementById('f-touren').value = e.touren || '';
+  document.getElementById('f-zuschlage').value = e.zuschlage || '';
+  document.getElementById('f-fahrpreis').value = e.fahrpreis || '';
+  document.getElementById('f-pauschal').value = e.pauschal || '';
+  document.getElementById('f-bargeld').value = e.bargeld || '';
+  document.getElementById('f-online').value = e.online || '';
+  document.getElementById('f-krank').value = e.krank || '';
+  document.getElementById('f-quittungen').value = e.quittungen || '';
+  document.getElementById('f-ausgaben').value = e.ausgaben || '';
+  document.getElementById('f-diesel').value = e.diesel || '';
+  document.getElementById('f-notes').value = e.notes || '';
+  showToast('✏️ Eintrag wird bearbeitet…', '#E65100');
+}
+
+function deleteEntry() {
+  if (!confirm('Eintrag löschen?')) return;
+  let entries = loadEntries().filter(e => e.id !== currentDetailId);
+  saveEntries(entries);
+  document.getElementById('detailModal').classList.remove('open');
+  renderLog();
+  showToast('🗑️ Eintrag gelöscht', '#C62828');
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────────────────────
+function renderSettings() {
+  const s = loadSettings();
+  document.getElementById('s-driver').value = s.driver || '';
+  document.getElementById('s-taxi').value   = s.taxi   || '';
+  document.getElementById('s-count').textContent = loadEntries().length;
+}
+
+function clearAllData() {
+  if (!confirm('ALLE Daten löschen? Dies kann nicht rückgängig gemacht werden!')) return;
+  localStorage.removeItem(STORE_KEY);
+  showToast('🗑️ Alle Daten gelöscht', '#C62828');
+  renderSettings();
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────────────────
+function exportJSON() {
+  const data = { exported: new Date().toISOString(), entries: loadEntries() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `gogo_backup_${today()}.json`;
+  a.click();
+  showToast('✅ JSON Backup exportiert!');
+}
+
+function exportCSV() {
+  const sel = document.getElementById('sumMonthSel');
+  const month = sel.value || today().slice(0,7);
+  const entries = loadEntries().filter(e => monthKey(e.date) === month)
+    .sort((a,b) => a.date.localeCompare(b.date));
+  const headers = ['Datum','Fahrer','KM Total','KM Besetzt','Touren','Zuschläge','Fahrpreis',
+                   'Pauschal','Bargeld','Online/Karte','Krank Fahrt','Quittungen','Ausgaben','Diesel','Notizen'];
+  const rows = entries.map(e => [
+    e.date, e.driver, e.kmTotal, e.kmBesetzt, e.touren, e.zuschlage,
+    e.fahrpreis, e.pauschal, e.bargeld, e.online, e.krank,
+    e.quittungen, e.ausgaben, e.diesel, e.notes
+  ].join(';'));
+  const csv = [headers.join(';'), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `gogo_${month}.csv`;
+  a.click();
+  showToast('✅ CSV exportiert!');
+}
+
+function importJSON() { document.getElementById('importFile').click(); }
+
+function handleImport(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      const imported = data.entries || data;
+      if (!Array.isArray(imported)) throw new Error();
+      const existing = loadEntries();
+      const existingIds = new Set(existing.map(x => x.id));
+      const newOnes = imported.filter(x => !existingIds.has(x.id));
+      saveEntries([...existing, ...newOnes]);
+      showToast(`✅ ${newOnes.length} neue Einträge importiert!`);
+      renderSettings();
+    } catch { showToast('❌ Ungültige Datei', '#C62828'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ── PWA INSTALL ───────────────────────────────────────────────────────────────
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('visible');
+});
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') {
+    document.getElementById('installBanner').classList.remove('visible');
+    showToast('✅ App installiert!');
+  }
+  deferredPrompt = null;
+});
+
+// ── SERVICE WORKER ────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// ── HEADER DATE ───────────────────────────────────────────────────────────────
+function updateHeaderDate() {
+  const now = new Date();
+  document.getElementById('headerDate').innerHTML =
+    now.toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'2-digit'}) +
+    '<br>' + now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+}
+updateHeaderDate();
+setInterval(updateHeaderDate, 60000);
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+initForm();
+populateMonthSel('logMonthSel', 0);
+populateMonthSel('sumMonthSel', 0);
+</script>
+</body>
+</html>
